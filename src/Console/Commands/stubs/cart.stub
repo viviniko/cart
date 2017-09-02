@@ -1,0 +1,58 @@
+<?php
+
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Database\Migrations\Migration;
+
+class CreateCartTable extends Migration
+{
+    /**
+     * @var string
+     */
+    protected $cartTable;
+
+    /**
+     * CreateSaleTable constructor.
+     */
+    public function __construct()
+    {
+        $this->cartTable = Config::get('cart.cart_table');
+    }
+
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        // Create table for storing cart items
+        Schema::create($this->cartTable, function (Blueprint $table) {
+            $table->increments('id');
+            $table->unsignedInteger('product_id');
+            $table->string('client_id', 32);
+            $table->string('sku_id', 64);
+            $table->unsignedInteger('customer_id')->default(0);
+            $table->decimal('price', 16, 4);
+            $table->decimal('market_price', 16, 4)->default(0);
+            $table->decimal('weight', 16, 4)->default(0);
+            $table->unsignedSmallInteger('quantity');
+            $table->text('attrs');
+            $table->timestamps();
+
+            $table->unique(['client_id', 'sku_id']);
+            $table->index(['customer_id']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists($this->cartTable);
+    }
+}

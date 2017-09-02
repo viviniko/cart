@@ -1,0 +1,28 @@
+{
+    "name": "viviniko/cart",
+    "description": "VIVINIKO Cart Service Provider",
+	"keywords": ["viviniko", "cart", "laravel"],
+	"homepage": "http://viviniko.com",
+	"license": "MIT",
+	"authors": [
+        {
+            "name": "viviniko",
+            "email": "viviniko.shop@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.0",
+        "viviniko/catalog": "dev-master",
+        "viviniko/promotion": "dev-master",
+        "viviniko/repository": "dev-master",
+        "viviniko/support": "dev-master",
+        "viviniko/agent": "dev-master"
+    },
+	"autoload": {
+        "psr-0": {
+            "Viviniko\\Cart": "src"
+        }
+    },
+    "minimum-stability": "dev",
+	"prefer-stable": true
+}
