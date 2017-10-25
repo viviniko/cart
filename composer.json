@@ -18,11 +18,11 @@
         "viviniko/support": "dev-master",
         "viviniko/agent": "dev-master"
     },
-	"autoload": {
+    "autoload": {
         "psr-0": {
             "Viviniko\\Cart": "src"
         }
     },
     "minimum-stability": "dev",
-	"prefer-stable": true
+    "prefer-stable": true
 }

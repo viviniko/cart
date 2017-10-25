@@ -96,7 +96,6 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
         $item = $this->createModel()->newQuery()->where(['client_id' => $clientId, 'sku_id' => $skuId])->first();
         if ($item) {
             $item = $this->update($item->id, ['quantity' => $item->quantity + $quantity]);
-            $this->session->remove('cart.quantity');
             $this->events->dispatch(new CartUpdated($item));
         } else {
             $productItem = $this->productService->findProductItem($productId, $productItemId);
@@ -116,9 +115,10 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
                 'attrs' => $attributes,
             ]);
 
-            $this->session->put('cart.quantity', $this->getQuantity($clientId) + $quantity);
             $this->events->dispatch(new CartCreated($item));
         }
+
+        $this->refresh();
 
         return $item;
     }
@@ -134,7 +134,7 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
     {
         if (($cart = $this->find($cartId)) && ($cart->client_id == Agent::clientId())) {
             $cart->delete();
-            $this->session->remove('cart.quantity');
+            $this->refresh();
             $this->events->dispatch(new CartRemoved($cart));
             return $cart->quantity;
         }
@@ -153,7 +153,7 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
     {
         if ($quantity > 0 && ($cart = $this->find($cartId)) && $cart->quantity != $quantity) {
             $this->update($cartId, ['quantity' => $quantity]);
-            $this->session->remove('cart.quantity');
+            $this->refresh();
             $this->events->dispatch(new CartUpdated($cart));
         }
 
@@ -200,7 +200,10 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
      */
     public function getItems($clientId = null)
     {
-        return new Collection($this->findBy('client_id', $clientId ?? Agent::clientId())->all());
+        $items = new Collection($this->findBy('client_id', $clientId ?? Agent::clientId())->all());
+        $items->setCoupon($this->session->get('cart.coupon.code', null), $this->session->get('cart.coupon.discount', 0));
+
+        return $items;
     }
 
     /**
@@ -218,19 +221,18 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
         return $this->session->get('cart.quantity');
     }
 
-    /**
-     * Get cart statistics.
-     *
-     * @param null $clientId
-     * @return mixed
-     */
-    public function getStatistics($clientId = null)
+    public function refresh()
     {
-        $items = $this->getItems($clientId);
-
-        return collect(['quantity', 'subtotal', 'grand_total', 'discount_amount', 'shipping_amount'])->mapWithKeys(function ($item) use ($items) {
-            return [$item => $items->$item];
-        });
+        $this->session->remove('cart.quantity');
+        if ($this->getQuantity() == 0) {
+            $this->setCoupon(null);
+        } else {
+            try {
+                $this->setCoupon($this->session->get('cart.coupon.code'));
+            } catch (\Exception $e) {
+                $this->setCoupon('');
+            }
+        }
     }
 
     /**
@@ -241,10 +243,8 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
      */
     public function clear($clientId = null)
     {
-        $this->session->remove('cart.quantity');
-        $this->setCoupon(null);
-        $this->setShippingAmount(0);
         $this->createModel()->where('client_id', $clientId ?? Agent::clientId())->delete();
+        $this->refresh();
     }
 
     /**
@@ -270,23 +270,24 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
     {
         $coupon = trim($coupon);
         if (!empty($coupon)) {
-            $this->session->put('cart.coupon.discount', $this->promotionService->getCouponDiscountAmount($this->getItems(), $coupon));
+            $this->session->put('cart.coupon.discount', price_number($this->promotionService->getCouponDiscountAmount($this->getItems(), $coupon)));
             $this->session->put('cart.coupon.code', $coupon);
         } else {
             $this->session->remove('cart.coupon.code');
             $this->session->remove('cart.coupon.discount');
         }
+
+        return $this;
     }
 
     /**
-     * Set shipping amount.
+     * Get cart statistics.
      *
-     * @param $amount
+     * @param null $clientId
      * @return mixed
-     * @throws \Exception
      */
-    public function setShippingAmount($amount)
+    public function getStatistics($clientId = null)
     {
-        $this->session->put('cart.shipping.amount', $amount);
+        return $this->getItems($clientId)->getStatistics();
     }
 }

@@ -30,6 +30,11 @@ class Cart extends Model
         return $this->belongsTo(Product::class, 'product_id');
     }
 
+    public function getCategoryIdAttribute()
+    {
+        return data_get($this->product, 'category_id');
+    }
+
     public function getNameAttribute()
     {
         return data_get($this->product, 'name');
