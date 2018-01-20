@@ -2,6 +2,7 @@
 
 namespace Viviniko\Cart\Services;
 
+use Viviniko\Currency\Facades\Currency;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Str;
 
@@ -29,8 +30,15 @@ class Collection extends BaseCollection
      */
     public function getSubtotal()
     {
-        return price_number($this->sum(function ($item) {
+        return Currency::f($this->sum(function ($item) {
             return $item->subtotal;
+        }));
+    }
+
+    public function getOriginSubtotal()
+    {
+        return Currency::f($this->sum(function ($item) {
+            return $item->origin_subtotal;
         }));
     }
 
@@ -41,7 +49,17 @@ class Collection extends BaseCollection
      */
     public function getGrandTotal()
     {
-        return price_number($this->getSubtotal() - $this->getDiscountAmount() + $this->getShippingAmount());
+        return Currency::f($this->getSubtotal() - $this->getDiscountAmount() + $this->getShippingAmount());
+    }
+
+    /**
+     * Get grand total.
+     *
+     * @return float
+     */
+    public function getOriginGrandTotal()
+    {
+        return Currency::f($this->getOriginSubtotal() - $this->getOriginDiscountAmount() + $this->getOriginShippingAmount());
     }
 
     /**
@@ -59,8 +77,18 @@ class Collection extends BaseCollection
             $this->_discount_amount = 0;
         } else {
             $this->_coupon_code = $coupon;
-            $this->_discount_amount = price_number($discountAmount);
+            $this->_discount_amount = $discountAmount;
         }
+    }
+
+    /**
+     * Get discount amount.
+     *
+     * @return float
+     */
+    public function getOriginDiscountAmount()
+    {
+        return Currency::f($this->_discount_amount);
     }
 
     /**
@@ -70,7 +98,7 @@ class Collection extends BaseCollection
      */
     public function getDiscountAmount()
     {
-        return $this->_discount_amount;
+        return Currency::t($this->_discount_amount);
     }
 
     public function getDiscountCoupon()
@@ -80,7 +108,17 @@ class Collection extends BaseCollection
 
     public function setShippingAmount($shippingAmount)
     {
-        $this->_shipping_amount = price_number($shippingAmount);
+        $this->_shipping_amount = $shippingAmount;
+    }
+
+    /**
+     * Get shipping amount.
+     *
+     * @return float
+     */
+    public function getOriginShippingAmount()
+    {
+        return Currency::f($this->_shipping_amount);
     }
 
     /**
@@ -90,7 +128,7 @@ class Collection extends BaseCollection
      */
     public function getShippingAmount()
     {
-        return $this->_shipping_amount;
+        return Currency::t($this->_shipping_amount);
     }
 
     /**
@@ -115,6 +153,11 @@ class Collection extends BaseCollection
         return $this->sum(function ($item) {
             return $item->gross_weight;
         });
+    }
+
+    public function getCurrency()
+    {
+        return data_get($this->first(), 'currency', '$');
     }
 
     /**
@@ -145,7 +188,7 @@ class Collection extends BaseCollection
      */
     public function getStatistics()
     {
-        return collect(['quantity', 'subtotal', 'grand_total', 'discount_amount', 'shipping_amount'])->mapWithKeys(function ($item) {
+        return collect(['quantity', 'subtotal', 'grand_total', 'discount_amount', 'shipping_amount', 'currency'])->mapWithKeys(function ($item) {
             return [$item => $this->$item];
         });
     }

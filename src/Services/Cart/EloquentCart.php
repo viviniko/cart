@@ -21,17 +21,17 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
     protected $modelConfigKey = 'cart.cart';
 
     /**
-     * @var \Viviniko\Catalog\Contracts\ProductService
+     * @var \Common\Catalog\Contracts\ProductService
      */
     protected $productService;
 
     /**
-     * @var \Viviniko\Catalog\Contracts\AttributeService
+     * @var \Common\Catalog\Contracts\AttributeService
      */
     protected $attributeService;
 
     /**
-     * @var \Viviniko\Promotion\Contracts\PromotionService
+     * @var \Common\Promotion\Contracts\PromotionService
      */
     protected $promotionService;
 
@@ -51,9 +51,9 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
 
     /**
      * EloquentCart constructor.
-     * @param \Viviniko\Catalog\Contracts\ProductService $productService
-     * @param \Viviniko\Catalog\Contracts\AttributeService $attributeService
-     * @param \Viviniko\Promotion\Contracts\PromotionService $promotionService
+     * @param \Common\Catalog\Contracts\ProductService $productService
+     * @param \Common\Catalog\Contracts\AttributeService $attributeService
+     * @param \Common\Promotion\Contracts\PromotionService $promotionService
      * @param \Illuminate\Session\SessionManager $session
      * @param \Illuminate\Contracts\Events\Dispatcher $events
      */
@@ -93,7 +93,7 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
             return false;
         }
 
-        $item = $this->createModel()->newQuery()->where(['client_id' => $clientId, 'sku_id' => $skuId])->first();
+        $item = $this->createModel()->newQuery()->where(array_merge(Auth::check() ? ['customer_id' => Auth::id()] : ['client_id' => $clientId], ['sku_id' => $skuId]))->first();
         if ($item) {
             $item = $this->update($item->id, ['quantity' => $item->quantity + $quantity]);
             $this->events->dispatch(new CartUpdated($item));
@@ -109,9 +109,9 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
                 'quantity' => $quantity,
                 'customer_id' => (int) Auth::id(),
                 'client_id' => $clientId,
-                'price' => $productItem->price,
-                'market_price' => $productItem->market_price,
-                'weight' => $productItem->weight,
+                'price' => $productItem->getOriginal('price'),
+                'market_price' => $productItem->getOriginal('market_price'),
+                'weight' => $productItem->getOriginal('weight'),
                 'attrs' => $attributes,
             ]);
 
@@ -123,6 +123,30 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
         return $item;
     }
 
+    public function updateProduct($productId, $skuId)
+    {
+        $productItemId = $skuId;
+        $productItem = $this->productService->findProductItem($productId, $productItemId);
+        if (!$productItem) {
+            return false;
+        }
+        $this->createModel()->where('product_id', $productId)->get()->each(function ($item) use ($productItem) {
+            if (($item->getOriginal('price') != $productItem->getOriginal('price') ||
+                    $item->getOriginal('market_price') != $productItem->getOriginal('market_price') ||
+                    $item->getOriginal('weight') != $productItem->getOriginal('weight')) &&
+                $item->sku_id == $this->productService->getProductSkuId($productItem->product_id, $item->attrs)
+            ) {
+                $this->update($item->id, [
+                    'price' => $productItem->getOriginal('price'),
+                    'market_price' => $productItem->getOriginal('market_price'),
+                    'weight' => $productItem->getOriginal('weight'),
+                ]);
+            }
+
+        });
+
+    }
+
     /**
      * Remove from cart.
      *
@@ -132,7 +156,7 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
      */
     public function remove($cartId)
     {
-        if (($cart = $this->find($cartId)) && ($cart->client_id == Agent::clientId())) {
+        if (($cart = $this->find($cartId)) && ((Auth::check() && $cart->customer_id == Auth::id()) || $cart->client_id == Agent::clientId())) {
             $cart->delete();
             $this->refresh();
             $this->events->dispatch(new CartRemoved($cart));
@@ -181,8 +205,9 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
                 $productItem = $this->productService->getProductItem($cart->product_id, $attributes);
                 $cart = $this->update($cartId, [
                     'sku_id' => $skuId,
-                    'price' => $productItem->price,
-                    'market_price' => $productItem->market_price,
+                    'price' => $productItem->getOriginal('price'),
+                    'market_price' => $productItem->getOriginal('market_price'),
+                    'weight' => $productItem->getOriginal('weight'),
                     'attrs' => $attributes,
                 ]);
             }
@@ -196,11 +221,24 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
      * cart lists.
      *
      * @param null $clientId
-     * @return \Viviniko\Cart\Services\Collection
+     * @return \Common\Cart\Services\Collection
      */
     public function getItems($clientId = null)
     {
-        $items = new Collection($this->findBy('client_id', $clientId ?? Agent::clientId())->all());
+        $items = !$clientId && Auth::check() ? $this->findBy('customer_id', Auth::id()) : $this->findBy('client_id', $clientId ?? Agent::clientId());
+        $items = new Collection($items->sortByDesc('created_at')->all());
+        if ($this->session->has('cart.quantity') && $this->session->get('cart.quantity') != $items->count()) {
+            $this->session->remove('cart.quantity');
+            if ($coupon = $this->session->get('cart.coupon.code')) {
+                try {
+                    $this->session->put('cart.coupon.discount', $this->promotionService->getCouponDiscountAmount($items, $coupon));
+                } catch (\Exception $e) {
+                    $this->session->remove('cart.coupon.code');
+                    $this->session->remove('cart.coupon.discount');
+                }
+            }
+        }
+
         $items->setCoupon($this->session->get('cart.coupon.code', null), $this->session->get('cart.coupon.discount', 0));
 
         return $items;
@@ -243,7 +281,7 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
      */
     public function clear($clientId = null)
     {
-        $this->createModel()->where('client_id', $clientId ?? Agent::clientId())->delete();
+        $this->createModel()->where(Auth::check() ? ['customer_id' => Auth::id()] : ['client_id' => $clientId ?? Agent::clientId()])->delete();
         $this->refresh();
     }
 
@@ -256,7 +294,20 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
      */
     public function syncCustomerClientId($customerId, $clientId = null)
     {
-        return $this->createModel()->newQuery()->where('client_id', $clientId ?? Agent::clientId())->update(['customer_id' => $customerId]);
+        $clientId = $clientId ?? Agent::clientId();
+        $this->createModel()->newQuery()->where('client_id', $clientId)->update(['customer_id' => $customerId]);
+        $this->createModel()->newQuery()->where('customer_id', $customerId)->where('client_id', '!=', $clientId)->get()->each(function ($item) use ($customerId, $clientId) {
+            if ($this->createModel()->newQuery()->where(['client_id' => $clientId, 'sku_id' => $item->sku_id])->exists()) {
+                $this->delete($item->id);
+            } else {
+                $this->update($item->id, ['client_id' => $clientId]);
+            }
+        });
+    }
+
+    public function clearCustomerClientId($customerId)
+    {
+        $this->createModel()->newQuery()->where('customer_id', $customerId)->update(['client_id' => '']);
     }
 
     /**
@@ -270,7 +321,7 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
     {
         $coupon = trim($coupon);
         if (!empty($coupon)) {
-            $this->session->put('cart.coupon.discount', price_number($this->promotionService->getCouponDiscountAmount($this->getItems(), $coupon)));
+            $this->session->put('cart.coupon.discount', $this->promotionService->getCouponDiscountAmount($this->getItems(), $coupon));
             $this->session->put('cart.coupon.code', $coupon);
         } else {
             $this->session->remove('cart.coupon.code');
@@ -289,5 +340,10 @@ class EloquentCart extends SimpleRepository implements CartServiceInterface
     public function getStatistics($clientId = null)
     {
         return $this->getItems($clientId)->getStatistics();
+    }
+
+    public function deleteAll(array $ids)
+    {
+        $this->createModel()->whereIn('id', $ids)->delete();
     }
 }
