@@ -2,17 +2,19 @@
 
 namespace Viviniko\Cart\Models;
 
-use Viviniko\Catalog\Models\Product;
+use Illuminate\Support\Facades\Config;
 use Viviniko\Support\Database\Eloquent\Model;
 
 class Cart extends Model
 {
     protected $tableConfigKey = 'cart.cart_table';
 
-    protected $fillable = ['product_id', 'sku_id', 'customer_id', 'client_id', 'price', 'market_price', 'quantity', 'weight', 'attrs'];
+    protected $fillable = [
+        'product_id', 'item_id', 'category_id', 'customer_id', 'client_id', 'price', 'cart_price', 'quantity', 'weight'
+    ];
 
     protected $casts = [
-        'attrs' => 'array',
+        'cart_price' => 'float',
         'price' => 'float',
         'weight' => 'float',
     ];
@@ -25,14 +27,19 @@ class Cart extends Model
         'product'
     ];
 
-    public function product()
+    public function category()
     {
-        return $this->belongsTo(Product::class, 'product_id');
+        return $this->belongsTo(Config::get('catalog.category'), 'category_id');
     }
 
-    public function getCategoryIdAttribute()
+    public function product()
     {
-        return data_get($this->product, 'category_id');
+        return $this->belongsTo(Config::get('catalog.product'), 'product_id');
+    }
+
+    public function item()
+    {
+        return $this->belongsTo(Config::get('catalog.item'), 'item_id');
     }
 
     public function getNameAttribute()
@@ -47,7 +54,7 @@ class Cart extends Model
 
     public function getSkuAttribute()
     {
-        return app(\Viviniko\Catalog\Contracts\ProductService::class)->getProductSku($this->product_id, $this->attrs);
+        return data_get($this->item, 'sku');
     }
 
     public function getPictureAttribute()

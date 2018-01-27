@@ -31,17 +31,17 @@ class CreateCartTable extends Migration
         Schema::create($this->cartTable, function (Blueprint $table) {
             $table->increments('id');
             $table->unsignedInteger('product_id');
+            $table->unsignedInteger('item_id');
+            $table->unsignedInteger('category_id');
             $table->string('client_id', 32);
-            $table->string('sku_id', 64);
             $table->unsignedInteger('customer_id')->default(0);
             $table->decimal('price', 16, 4);
-            $table->decimal('market_price', 16, 4)->default(0);
+            $table->decimal('cart_price', 16, 4);
             $table->decimal('weight', 16, 4)->default(0);
             $table->unsignedSmallInteger('quantity');
-            $table->text('attrs');
             $table->timestamps();
 
-            $table->unique(['client_id', 'sku_id']);
+            $table->unique(['client_id', 'item_id']);
             $table->index(['customer_id']);
         });
     }

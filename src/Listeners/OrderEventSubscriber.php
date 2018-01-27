@@ -19,7 +19,7 @@ class OrderEventSubscriber
 
 	public function onOrderCreated(OrderCreated $event)
     {
-        $this->cartService->clear();
+
 	}
 
 	/**

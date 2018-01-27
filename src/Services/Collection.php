@@ -30,16 +30,9 @@ class Collection extends BaseCollection
      */
     public function getSubtotal()
     {
-        return Currency::f($this->sum(function ($item) {
+        return $this->sum(function ($item) {
             return $item->subtotal;
-        }));
-    }
-
-    public function getOriginSubtotal()
-    {
-        return Currency::f($this->sum(function ($item) {
-            return $item->origin_subtotal;
-        }));
+        });
     }
 
     /**
@@ -49,17 +42,7 @@ class Collection extends BaseCollection
      */
     public function getGrandTotal()
     {
-        return Currency::f($this->getSubtotal() - $this->getDiscountAmount() + $this->getShippingAmount());
-    }
-
-    /**
-     * Get grand total.
-     *
-     * @return float
-     */
-    public function getOriginGrandTotal()
-    {
-        return Currency::f($this->getOriginSubtotal() - $this->getOriginDiscountAmount() + $this->getOriginShippingAmount());
+        return $this->getSubtotal() - $this->getDiscountAmount() + $this->getShippingAmount();
     }
 
     /**
@@ -86,19 +69,9 @@ class Collection extends BaseCollection
      *
      * @return float
      */
-    public function getOriginDiscountAmount()
-    {
-        return Currency::f($this->_discount_amount);
-    }
-
-    /**
-     * Get discount amount.
-     *
-     * @return float
-     */
     public function getDiscountAmount()
     {
-        return Currency::t($this->_discount_amount);
+        return $this->_discount_amount;
     }
 
     public function getDiscountCoupon()
@@ -116,19 +89,9 @@ class Collection extends BaseCollection
      *
      * @return float
      */
-    public function getOriginShippingAmount()
-    {
-        return Currency::f($this->_shipping_amount);
-    }
-
-    /**
-     * Get shipping amount.
-     *
-     * @return float
-     */
     public function getShippingAmount()
     {
-        return Currency::t($this->_shipping_amount);
+        return $this->_shipping_amount;
     }
 
     /**
@@ -153,11 +116,6 @@ class Collection extends BaseCollection
         return $this->sum(function ($item) {
             return $item->gross_weight;
         });
-    }
-
-    public function getCurrency()
-    {
-        return data_get($this->first(), 'currency', '$');
     }
 
     /**
@@ -188,7 +146,7 @@ class Collection extends BaseCollection
      */
     public function getStatistics()
     {
-        return collect(['quantity', 'subtotal', 'grand_total', 'discount_amount', 'shipping_amount', 'currency'])->mapWithKeys(function ($item) {
+        return collect(['quantity', 'subtotal', 'grand_total', 'discount_amount', 'shipping_amount'])->mapWithKeys(function ($item) {
             return [$item => $this->$item];
         });
     }

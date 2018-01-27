@@ -39,6 +39,8 @@ class CartServiceProvider extends BaseServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/cart.php', 'cart');
 
+        $this->registerRepositories();
+
         $this->registerCartService();
 
         $this->registerCommands();
@@ -54,6 +56,14 @@ class CartServiceProvider extends BaseServiceProvider
         $this->app->singleton('command.cart.table', function ($app) {
             return new CartTableCommand($app['files'], $app['composer']);
         });
+    }
+
+    protected function registerRepositories()
+    {
+        $this->app->singleton(
+            \Viviniko\Cart\Repositories\Cart\CartRepository::class,
+            \Viviniko\Cart\Repositories\Cart\EloquentCart::class
+        );
     }
 
     /**

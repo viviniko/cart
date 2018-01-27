@@ -5,16 +5,14 @@ namespace Viviniko\Cart\Contracts;
 interface CartService
 {
     /**
-     * Add product.
+     * Add Item.
      *
-     * @param  int  $productId
-     * @param  int  $skuId
+     * @param  int  $itemId
      * @param  int  $quantity
-     * @param  array  $attributes
      *
      * @return mixed
      */
-    public function add($productId, $skuId, $quantity, array $attributes);
+    public function add($itemId, $quantity);
 
     /**
      * Remove from cart.
@@ -44,15 +42,6 @@ interface CartService
     public function setItemQuantity($cartId, $quantity);
 
     /**
-     * Update cart item attributes.
-     *
-     * @param $cartId
-     * @param $attributes
-     * @return mixed
-     */
-    public function updateItemAttributes($cartId, $attributes);
-
-    /**
      * Get cart items.
      *
      * @param null $clientId
@@ -75,14 +64,6 @@ interface CartService
      * @return mixed
      */
     public function getStatistics($clientId = null);
-
-    /**
-     * Remove cart items.
-     *
-     * @param null $clientId
-     * @return mixed
-     */
-    public function clear($clientId = null);
 
     /**
      * Sync customer client id.
