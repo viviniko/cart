@@ -41,8 +41,8 @@ class CreateCartTable extends Migration
             $table->unsignedSmallInteger('quantity');
             $table->timestamps();
 
-            $table->unique(['client_id', 'item_id']);
-            $table->index(['customer_id']);
+            $table->index(['client_id', 'item_id']);
+            $table->index(['customer_id', 'item_id']);
         });
     }
 
