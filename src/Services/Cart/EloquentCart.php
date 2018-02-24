@@ -97,7 +97,7 @@ class EloquentCart implements CartServiceInterface
             ->first();
 
         if ($cart) {
-            $cart = $this->update($cart->id, ['quantity' => $cart->quantity + $quantity]);
+            $cart = $this->cartRepository->update($cart->id, ['quantity' => $cart->quantity + $quantity]);
             $this->events->dispatch(new CartUpdated($cart));
         } else {
             $item = $this->itemService->find($itemId);
