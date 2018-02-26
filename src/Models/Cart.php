@@ -52,6 +52,11 @@ class Cart extends Model
         return data_get($this->product, 'url');
     }
 
+    public function getAttrsAttribute()
+    {
+        return $this->item->attrs->pluck('id')->toArray();
+    }
+
     public function getSkuAttribute()
     {
         return data_get($this->item, 'sku');
