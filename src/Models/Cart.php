@@ -84,16 +84,6 @@ class Cart extends Model
 
     public function getAttributeValuesAttribute()
     {
-        return app(\Viviniko\Catalog\Contracts\AttributeService::class)->findIn($this->attrs)->sort(function ($a, $b) {
-            foreach ($this->attrs as $attr) {
-                if ($a->id == $attr) {
-                    return -1;
-                }
-                if ($b->id == $attr) {
-                    return 1;
-                }
-            }
-            return 0;
-        })->pluck('value', 'group.text_prompt');
+        return $this->item->attributes->pluck('value', 'group.text_prompt');
     }
 }
