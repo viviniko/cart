@@ -84,6 +84,6 @@ class Cart extends Model
 
     public function getAttributeValuesAttribute()
     {
-        return $this->item->attributes->pluck('value', 'group.text_prompt');
+        return $this->item->attrs->pluck('value', 'group.text_prompt');
     }
 }
