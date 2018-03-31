@@ -80,15 +80,11 @@ class Cart extends Model
     public function getDescriptionAttribute()
     {
         $description = [];
-        foreach ($this->getAttributeValuesAttribute() as $name => $value) {
+        foreach ($this->item->desc_attrs as $name => $value) {
             $description[] = "$name: $value";
         }
 
         return implode('; ', $description);
     }
 
-    public function getAttributeValuesAttribute()
-    {
-        return $this->item->attrs->pluck('value', 'group.text_prompt');
-    }
 }
