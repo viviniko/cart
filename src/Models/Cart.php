@@ -62,7 +62,7 @@ class Cart extends Model
         return data_get($this->item, 'sku');
     }
 
-    public function getPictureAttribute()
+    public function getCoverAttribute()
     {
         return data_get($this->item, 'cover');
     }
