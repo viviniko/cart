@@ -20,7 +20,7 @@ class Cart extends Model
     ];
 
     protected $appends = [
-        'name', 'sku', 'url', 'picture', 'subtotal', 'attribute_values'
+        'name', 'sku', 'url', 'picture', 'subtotal', 'desc_attrs'
     ];
 
     protected $hidden = [
@@ -77,14 +77,9 @@ class Cart extends Model
         return $this->weight * $this->quantity;
     }
 
-    public function getDescriptionAttribute()
+    public function getDescAttrsAttribute()
     {
-        $description = [];
-        foreach ($this->item->desc_attrs as $name => $value) {
-            $description[] = "$name: $value";
-        }
-
-        return implode('; ', $description);
+        return data_get($this->item, 'desc_attrs');
     }
 
 }
