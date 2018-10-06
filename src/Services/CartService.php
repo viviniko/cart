@@ -1,6 +1,6 @@
 <?php
 
-namespace Viviniko\Cart\Contracts;
+namespace Viviniko\Cart\Services;
 
 interface CartService
 {

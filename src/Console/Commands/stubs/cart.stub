@@ -35,9 +35,6 @@ class CreateCartTable extends Migration
             $table->unsignedInteger('category_id');
             $table->string('client_id', 32);
             $table->unsignedInteger('customer_id')->default(0);
-            $table->decimal('price', 16, 4);
-            $table->decimal('cart_price', 16, 4);
-            $table->decimal('weight', 16, 4)->default(0);
             $table->unsignedSmallInteger('quantity');
             $table->timestamps();
 

@@ -2,13 +2,13 @@
 
 namespace Viviniko\Cart\Listeners;
 
-use Viviniko\Cart\Contracts\CartService;
+use Viviniko\Cart\Services\CartService;
 use Illuminate\Auth\Events\Login;
 
 class CustomerEventSubscriber
 {
 	/**
-	 * @var \Viviniko\Cart\Contracts\CartService
+	 * @var \Viviniko\Cart\Services\CartService
 	 */
 	private $cartService;
 

@@ -74,8 +74,8 @@ class CartServiceProvider extends BaseServiceProvider
     protected function registerCartService()
     {
         $this->app->singleton(
-            \Viviniko\Cart\Contracts\CartService::class,
-            \Viviniko\Cart\Services\Cart\EloquentCart::class
+            \Viviniko\Cart\Services\CartService::class,
+            \Viviniko\Cart\Services\Impl\EloquentCart::class
         );
     }
 
@@ -87,7 +87,7 @@ class CartServiceProvider extends BaseServiceProvider
     public function provides()
     {
         return [
-            \Viviniko\Cart\Contracts\CartService::class,
+            \Viviniko\Cart\Services\CartService::class,
         ];
     }
 }

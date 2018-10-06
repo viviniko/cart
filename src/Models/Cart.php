@@ -10,17 +10,11 @@ class Cart extends Model
     protected $tableConfigKey = 'cart.cart_table';
 
     protected $fillable = [
-        'product_id', 'item_id', 'category_id', 'customer_id', 'client_id', 'price', 'cart_price', 'quantity', 'weight'
-    ];
-
-    protected $casts = [
-        'cart_price' => 'float',
-        'price' => 'float',
-        'weight' => 'float',
+        'product_id', 'item_id', 'category_id', 'customer_id', 'client_id', 'quantity'
     ];
 
     protected $appends = [
-        'name', 'sku', 'url', 'picture', 'subtotal', 'desc_attrs'
+        'name', 'sku', 'url', 'amount', 'currency', 'subtotal', 'desc_specs'
     ];
 
     protected $hidden = [
@@ -52,9 +46,24 @@ class Cart extends Model
         return data_get($this->product, 'url');
     }
 
-    public function getAttrsAttribute()
+    public function getAmountAttribute()
     {
-        return $this->item->attrs->pluck('id')->toArray();
+        return data_get($this->item, 'amount');
+    }
+
+    public function getCurrencyAttribute()
+    {
+        return data_get($this->item, 'currency');
+    }
+
+    public function getWeightAttribute()
+    {
+        return data_get($this->item, 'weight');
+    }
+
+    public function getSpecsAttribute()
+    {
+        return $this->item->specs->pluck('id')->toArray();
     }
 
     public function getSkuAttribute()
@@ -69,17 +78,17 @@ class Cart extends Model
 
     public function getSubtotalAttribute()
     {
-        return $this->price * $this->quantity;
+        return $this->getAmountAttribute() * $this->quantity;
     }
 
     public function getGrossWeightAttribute()
     {
-        return $this->weight * $this->quantity;
+        return $this->getWeightAttribute() * $this->quantity;
     }
 
-    public function getDescAttrsAttribute()
+    public function getDescSpecsAttribute()
     {
-        return data_get($this->item, 'desc_attrs');
+        return data_get($this->item, 'desc_specs');
     }
 
 }

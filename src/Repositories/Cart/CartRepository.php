@@ -21,6 +21,16 @@ interface CartRepository
      * @param array $columns
      * @return \Illuminate\Database\Eloquent\Collection|static[]
      */
+    public function findAllBy($column, $value = null, $columns = ['*']);
+
+    /**
+     * Find data by field and value
+     *
+     * @param $column
+     * @param null $value
+     * @param array $columns
+     * @return mixed
+     */
     public function findBy($column, $value = null, $columns = ['*']);
 
     /**

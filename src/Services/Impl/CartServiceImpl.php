@@ -1,6 +1,6 @@
 <?php
 
-namespace Viviniko\Cart\Services\Cart;
+namespace Viviniko\Cart\Services\Impl;
 
 use Viviniko\Agent\Facades\Agent;
 use Viviniko\Cart\Events\CartCreated;
@@ -9,15 +9,15 @@ use Viviniko\Cart\Events\CartUpdated;
 use Viviniko\Cart\Repositories\Cart\CartRepository;
 use Viviniko\Cart\Services\Collection;
 use Viviniko\Catalog\Contracts\AttributeService;
-use Viviniko\Catalog\Contracts\ItemService;
-use Viviniko\Catalog\Contracts\ProductService;
+use Viviniko\Catalog\Services\ItemService;
+use Viviniko\Catalog\Services\ProductService;
 use Viviniko\Promotion\Contracts\PromotionService;
-use Viviniko\Cart\Contracts\CartService as CartServiceInterface;
+use Viviniko\Cart\Services\CartService as CartServiceInterface;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Auth;
 
-class EloquentCart implements CartServiceInterface
+class CartServiceImpl implements CartServiceInterface
 {
     /**
      * @var \Viviniko\Cart\Repositories\Cart\CartRepository
@@ -25,12 +25,12 @@ class EloquentCart implements CartServiceInterface
     protected $cartRepository;
 
     /**
-     * @var \Viviniko\Catalog\Contracts\ProductService
+     * @var \Viviniko\Catalog\Services\ProductService
      */
     protected $productService;
 
     /**
-     * @var \Viviniko\Catalog\Contracts\ItemService
+     * @var \Viviniko\Catalog\Services\ItemService
      */
     protected $itemService;
 
@@ -61,7 +61,8 @@ class EloquentCart implements CartServiceInterface
     /**
      * EloquentCart constructor.
      * @param \Viviniko\Cart\Repositories\Cart\CartRepository
-     * @param \Viviniko\Catalog\Contracts\ProductService $productService
+     * @param \Viviniko\Catalog\Services\ItemService
+     * @param \Viviniko\Catalog\Services\ProductService $productService
      * @param \Viviniko\Catalog\Contracts\AttributeService $attributeService
      * @param \Viviniko\Promotion\Contracts\PromotionService $promotionService
      * @param \Illuminate\Session\SessionManager $session
@@ -93,8 +94,7 @@ class EloquentCart implements CartServiceInterface
         $clientId = Agent::clientId();
 
         $cart = $this->cartRepository
-            ->findBy(array_merge(Auth::check() ? ['customer_id' => Auth::id()] : ['client_id' => $clientId], ['item_id' => $itemId]))
-            ->first();
+            ->findBy(array_merge(Auth::check() ? ['customer_id' => Auth::id()] : ['client_id' => $clientId], ['item_id' => $itemId]));
 
         if ($cart) {
             $cart = $this->cartRepository->update($cart->id, ['quantity' => $cart->quantity + $quantity]);
@@ -112,9 +112,6 @@ class EloquentCart implements CartServiceInterface
                 'quantity' => $quantity,
                 'customer_id' => (int) Auth::id(),
                 'client_id' => $clientId,
-                'price' => $item->getOriginal('price'),
-                'cart_price' => $item->getOriginal('price'),
-                'weight' => $item->getOriginal('weight'),
             ]);
 
             $this->events->dispatch(new CartCreated($cart));
@@ -159,9 +156,17 @@ class EloquentCart implements CartServiceInterface
      */
     public function getItems($clientId = null)
     {
-        $items = !$clientId && Auth::check() ?
-            $this->cartRepository->findBy('customer_id', Auth::id()) :
-            $this->cartRepository->findBy('client_id', $clientId ?? Agent::clientId());
+        $filters = [];
+        if ($clientId) {
+            $filters['client_id'] = $clientId;
+        } else if (Auth::check()) {
+            $filters['cusomter_id'] = Auth::id();
+        } else {
+            $filters['client_id'] = Agent::clientId();
+        }
+
+        $items = $this->cartRepository->findAllBy($filters);
+
         $items = new Collection($items->sortByDesc('created_at')->all());
         if ($this->session->has('cart.quantity') && $this->session->get('cart.quantity') != $items->count()) {
             $this->session->remove('cart.quantity');
@@ -178,14 +183,6 @@ class EloquentCart implements CartServiceInterface
         $items->setCoupon($this->session->get('cart.coupon.code', null), $this->session->get('cart.coupon.discount', 0));
 
         return $items;
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function findByCustomerId($customerId)
-    {
-        return $this->cartRepository->findBy('customer_id', $customerId);
     }
 
     /**
@@ -223,18 +220,18 @@ class EloquentCart implements CartServiceInterface
     public function syncCustomerClientId($customerId, $clientId = null)
     {
         $clientId = $clientId ?? Agent::clientId();
-        $this->cartRepository->updateByClientId($clientId, ['customer_id' => $customerId]);
-        $this->cartRepository->findBy('customer_id', $customerId)->each(function ($cart) use ($clientId) {
-            if ($clientId != $cart->client_id) {
-                if ($oldCart = $this->cartRepository->findBy(['client_id' => $clientId, 'item_id' => $cart->item_id])->first()) {
-                    $this->cartRepository->update($oldCart, ['quantity' => $cart->quantity]);
-                    $this->cartRepository->delete($cart->id);
+        $clientCartItems = $this->cartRepository->findAllBy('client_id', $clientId);
+        foreach ($clientCartItems as $clientCartItem) {
+            if ($clientCartItem->customer_id != $customerId) {
+                if ($oldCart = $this->cartRepository->findBy(['customer_id' => $customerId, 'item_id' => $clientCartItem->item_id])) {
+                    $this->cartRepository->update($oldCart->id, ['quantity' => $clientCartItem->quantity, 'client_id' => '']);
+                    $this->cartRepository->delete($clientCartItem->id);
                 } else {
-                    $this->cartRepository->update($cart->item_id, ['client_id' => $clientId]);
+                    $this->cartRepository->update($clientCartItem->item_id, ['customer_id' => $customerId, 'client_id' => '']);
                 }
 
             }
-        });
+        }
     }
 
     /**

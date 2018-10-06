@@ -2,13 +2,13 @@
 
 namespace Viviniko\Cart\Listeners;
 
-use Viviniko\Cart\Contracts\CartService;
+use Viviniko\Cart\Services\CartService;
 use Viviniko\Sale\Events\OrderCreated;
 
 class OrderEventSubscriber
 {
 	/**
-	 * @var \Common\Cart\Contracts\CartService
+	 * @var \Common\Cart\Services\CartService
 	 */
 	private $cartService;
 
