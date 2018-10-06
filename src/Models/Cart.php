@@ -14,7 +14,7 @@ class Cart extends Model
     ];
 
     protected $appends = [
-        'name', 'sku', 'url', 'amount', 'currency', 'subtotal', 'desc_specs'
+        'name', 'sku', 'url', 'amount', 'discount', 'currency', 'subtotal', 'desc_specs'
     ];
 
     protected $hidden = [
@@ -51,6 +51,11 @@ class Cart extends Model
         return data_get($this->item, 'amount');
     }
 
+    public function getDiscountAttribute()
+    {
+        return data_get($this->item, 'discount');
+    }
+
     public function getCurrencyAttribute()
     {
         return data_get($this->item, 'currency');
@@ -78,7 +83,7 @@ class Cart extends Model
 
     public function getSubtotalAttribute()
     {
-        return $this->getAmountAttribute() * $this->quantity;
+        return data_get($this->item, 'discount_amount') * $this->quantity;
     }
 
     public function getGrossWeightAttribute()
