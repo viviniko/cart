@@ -12,12 +12,12 @@
     ],
     "require": {
         "php": ">=7.0",
-        "viviniko/catalog": "^v1.0",
-        "viviniko/currency": "^v1.0",
-        "viviniko/promotion": "^v1.0",
-        "viviniko/repository": "^v1.0",
-        "viviniko/support": "^v1.0",
-        "viviniko/agent": "^v1.0"
+        "viviniko/catalog": "^1.0",
+        "viviniko/currency": "^1.0",
+        "viviniko/promotion": "^1.0",
+        "viviniko/repository": "^1.0",
+        "viviniko/support": "^1.0",
+        "viviniko/agent": "^1.0"
     },
     "autoload": {
         "psr-0": {

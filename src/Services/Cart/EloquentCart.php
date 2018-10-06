@@ -227,7 +227,7 @@ class EloquentCart implements CartServiceInterface
         $this->cartRepository->findBy('customer_id', $customerId)->each(function ($cart) use ($clientId) {
             if ($clientId != $cart->client_id) {
                 if ($oldCart = $this->cartRepository->findBy(['client_id' => $clientId, 'item_id' => $cart->item_id])->first()) {
-                    $this->cartRepository->update($oldCart, ['quantity' => $cart->quantity]);
+                    $this->cartRepository->update($oldCart->id, ['quantity' => $cart->quantity]);
                     $this->cartRepository->delete($cart->id);
                 } else {
                     $this->cartRepository->update($cart->item_id, ['client_id' => $clientId]);
