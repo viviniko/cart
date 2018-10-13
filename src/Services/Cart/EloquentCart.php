@@ -270,6 +270,7 @@ class EloquentCart implements CartServiceInterface
         return $this->getItems($clientId)->getStatistics();
     }
 
+    
     /**
      * {@inheritdoc}
      */
