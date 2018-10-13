@@ -75,7 +75,7 @@ class CartServiceProvider extends BaseServiceProvider
     {
         $this->app->singleton(
             \Viviniko\Cart\Services\CartService::class,
-            \Viviniko\Cart\Services\Impl\EloquentCart::class
+            \Viviniko\Cart\Services\CartServiceImpl::class
         );
     }
 

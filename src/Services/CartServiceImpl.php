@@ -1,23 +1,21 @@
 <?php
 
-namespace Viviniko\Cart\Services\Impl;
+namespace Viviniko\Cart\Services;
 
 use Viviniko\Agent\Facades\Agent;
 use Viviniko\Cart\Events\CartCreated;
 use Viviniko\Cart\Events\CartRemoved;
 use Viviniko\Cart\Events\CartUpdated;
 use Viviniko\Cart\Repositories\Cart\CartRepository;
-use Viviniko\Cart\Services\Collection;
 use Viviniko\Catalog\Contracts\AttributeService;
 use Viviniko\Catalog\Services\ItemService;
 use Viviniko\Catalog\Services\ProductService;
 use Viviniko\Promotion\Contracts\PromotionService;
-use Viviniko\Cart\Services\CartService as CartServiceInterface;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Auth;
 
-class CartServiceImpl implements CartServiceInterface
+class CartServiceImpl implements CartService
 {
     /**
      * @var \Viviniko\Cart\Repositories\Cart\CartRepository
@@ -109,9 +107,10 @@ class CartServiceImpl implements CartServiceInterface
                 'product_id' => $item->product_id,
                 'item_id' => $item->id,
                 'category_id' => $item->product->category_id,
-                'quantity' => $quantity,
                 'customer_id' => (int) Auth::id(),
                 'client_id' => $clientId,
+                'amount' => $item->amount->value,
+                'quantity' => $quantity,
             ]);
 
             $this->events->dispatch(new CartCreated($cart));

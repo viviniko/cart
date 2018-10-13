@@ -10,7 +10,7 @@ class Cart extends Model
     protected $tableConfigKey = 'cart.cart_table';
 
     protected $fillable = [
-        'product_id', 'item_id', 'category_id', 'customer_id', 'client_id', 'quantity'
+        'product_id', 'item_id', 'category_id', 'customer_id', 'client_id', 'amount', 'quantity'
     ];
 
     protected $appends = [
@@ -56,11 +56,6 @@ class Cart extends Model
         return data_get($this->item, 'discount');
     }
 
-    public function getCurrencyAttribute()
-    {
-        return data_get($this->item, 'currency');
-    }
-
     public function getWeightAttribute()
     {
         return data_get($this->item, 'weight');
@@ -83,7 +78,7 @@ class Cart extends Model
 
     public function getSubtotalAttribute()
     {
-        return data_get($this->item, 'discount_amount') * $this->quantity;
+        return $this->getAmountAttribute()->discount($this->getDiscountAttribute())->mul($this->quantity);
     }
 
     public function getGrossWeightAttribute()

@@ -2,18 +2,21 @@
 
 namespace Viviniko\Cart\Repositories\Cart;
 
-use Viviniko\Repository\SimpleRepository;
+use Viviniko\Repository\EloquentRepository;
 
-class EloquentCart extends SimpleRepository implements CartRepository
+class EloquentCart extends EloquentRepository implements CartRepository
 {
-    protected $modelConfigKey = 'cart.cart';
+    public function __construct()
+    {
+        parent::__construct('cart.cart');
+    }
 
     /**
      * {@inheritdoc}
      */
     public function deleteByClientId($clientId)
     {
-        return $this->createModel()->where('client_id', $clientId)->delete();
+        return $this->createQuery()->where('client_id', $clientId)->delete();
     }
 
     /**
@@ -21,7 +24,7 @@ class EloquentCart extends SimpleRepository implements CartRepository
      */
     public function updateByClientId($clientId, array $data)
     {
-        return $this->createModel()->where('client_id', $clientId)->update($data);
+        return $this->createQuery()->where('client_id', $clientId)->update($data);
     }
 
     /**
@@ -29,7 +32,7 @@ class EloquentCart extends SimpleRepository implements CartRepository
      */
     public function updateByCustomerId($customerId, array $data)
     {
-        return $this->createModel()->where('customer_id', $customerId)->update($data);
+        return $this->createQuery()->where('customer_id', $customerId)->update($data);
     }
 
     /**
@@ -37,6 +40,6 @@ class EloquentCart extends SimpleRepository implements CartRepository
      */
     public function deleteAll(array $ids)
     {
-        $this->createModel()->whereIn('id', $ids)->delete();
+        $this->createQuery()->whereIn('id', $ids)->delete();
     }
 }
