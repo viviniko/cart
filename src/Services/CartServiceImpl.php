@@ -7,10 +7,9 @@ use Viviniko\Cart\Events\CartCreated;
 use Viviniko\Cart\Events\CartRemoved;
 use Viviniko\Cart\Events\CartUpdated;
 use Viviniko\Cart\Repositories\Cart\CartRepository;
-use Viviniko\Catalog\Contracts\AttributeService;
 use Viviniko\Catalog\Services\ItemService;
 use Viviniko\Catalog\Services\ProductService;
-use Viviniko\Promotion\Contracts\PromotionService;
+use Viviniko\Promotion\Services\PromotionService;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Session\SessionManager;
 use Illuminate\Support\Facades\Auth;
@@ -33,12 +32,7 @@ class CartServiceImpl implements CartService
     protected $itemService;
 
     /**
-     * @var \Viviniko\Catalog\Contracts\AttributeService
-     */
-    protected $attributeService;
-
-    /**
-     * @var \Viviniko\Promotion\Contracts\PromotionService
+     * @var \Viviniko\Promotion\Services\PromotionService
      */
     protected $promotionService;
 
@@ -61,8 +55,7 @@ class CartServiceImpl implements CartService
      * @param \Viviniko\Cart\Repositories\Cart\CartRepository
      * @param \Viviniko\Catalog\Services\ItemService
      * @param \Viviniko\Catalog\Services\ProductService $productService
-     * @param \Viviniko\Catalog\Contracts\AttributeService $attributeService
-     * @param \Viviniko\Promotion\Contracts\PromotionService $promotionService
+     * @param \Viviniko\Promotion\Services\PromotionService $promotionService
      * @param \Illuminate\Session\SessionManager $session
      * @param \Illuminate\Contracts\Events\Dispatcher $events
      */
@@ -70,7 +63,6 @@ class CartServiceImpl implements CartService
         CartRepository $cartRepository,
         ItemService $itemService,
         ProductService $productService,
-        AttributeService $attributeService,
         PromotionService $promotionService,
         SessionManager $session,
         Dispatcher $events)
@@ -78,7 +70,6 @@ class CartServiceImpl implements CartService
         $this->cartRepository = $cartRepository;
         $this->productService = $productService;
         $this->itemService = $itemService;
-        $this->attributeService = $attributeService;
         $this->promotionService = $promotionService;
         $this->events = $events;
         $this->session = $session;
