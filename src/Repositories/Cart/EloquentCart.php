@@ -2,13 +2,14 @@
 
 namespace Viviniko\Cart\Repositories\Cart;
 
+use Illuminate\Support\Facades\Config;
 use Viviniko\Repository\EloquentRepository;
 
 class EloquentCart extends EloquentRepository implements CartRepository
 {
     public function __construct()
     {
-        parent::__construct('cart.cart');
+        parent::__construct(Config::get('cart.cart'));
     }
 
     /**
