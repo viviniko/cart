@@ -30,9 +30,9 @@ class Collection extends BaseCollection
      */
     public function getSubtotal()
     {
-        return $this->sum(function ($item) {
-            return $item->subtotal;
-        });
+        return $this->reduce(function ($amount, $item) {
+            return $amount ? $amount->add($item->subtotal) : $item->subtotal;
+        }, null);
     }
 
     /**
