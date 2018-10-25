@@ -151,7 +151,7 @@ class CartServiceImpl implements CartService
         if ($clientId) {
             $filters['client_id'] = $clientId;
         } else if (Auth::check()) {
-            $filters['cusomter_id'] = Auth::id();
+            $filters['customer_id'] = Auth::id();
         } else {
             $filters['client_id'] = Agent::clientId();
         }
