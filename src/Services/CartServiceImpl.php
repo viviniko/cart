@@ -3,6 +3,7 @@
 namespace Viviniko\Cart\Services;
 
 use Viviniko\Agent\Facades\Agent;
+use Viviniko\Cart\Collection;
 use Viviniko\Cart\Events\CartCreated;
 use Viviniko\Cart\Events\CartRemoved;
 use Viviniko\Cart\Events\CartUpdated;

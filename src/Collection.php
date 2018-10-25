@@ -1,17 +1,18 @@
 <?php
 
-namespace Viviniko\Cart\Services;
+namespace Viviniko\Cart;
 
-use Viviniko\Currency\Facades\Currency;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Str;
+use Viviniko\Currency\Amount;
+use Viviniko\Currency\Facades\Currency;
 
 class Collection extends BaseCollection
 {
     /**
-     * @var float
+     * @var Amount
      */
-    protected $_shipping_amount = 0;
+    protected $_shipping_amount;
 
     /**
      * @var string
@@ -19,9 +20,16 @@ class Collection extends BaseCollection
     protected $_coupon_code = null;
 
     /**
-     * @var float
+     * @var Amount
      */
     protected $_discount_amount = 0;
+
+    public function __construct($items = [])
+    {
+        parent::__construct($items);
+        $this->_shipping_amount = Currency::createBaseAmount(0);
+        $this->_discount_amount = Currency::createBaseAmount(0);
+    }
 
     /**
      * Get subtotal.
@@ -42,7 +50,7 @@ class Collection extends BaseCollection
      */
     public function getGrandTotal()
     {
-        return $this->getSubtotal() - $this->getDiscountAmount() + $this->getShippingAmount();
+        return $this->getSubtotal()->sub($this->getDiscountAmount())->add($this->getShippingAmount());
     }
 
     /**
@@ -53,11 +61,11 @@ class Collection extends BaseCollection
      * @return mixed
      * @throws \Exception
      */
-    public function setCoupon($coupon, $discountAmount = 0)
+    public function setCoupon($coupon, $discountAmount = null)
     {
         if (empty($coupon)) {
             $this->_coupon_code = null;
-            $this->_discount_amount = 0;
+            $this->_discount_amount = Currency::createBaseAmount(0);
         } else {
             $this->_coupon_code = $coupon;
             $this->_discount_amount = $discountAmount;
