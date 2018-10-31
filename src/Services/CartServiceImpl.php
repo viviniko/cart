@@ -277,16 +277,19 @@ class CartServiceImpl implements CartService
         });
 
         $product = $this->catalog->getProduct($item->product_id);
-        $productItem = $product ? $product->items->where('id', $id)->first() : null;
+        $productItem = $product ? $product->items->where('id', $item->item_id)->first() : null;
 
         if (!$productItem || !$item) {
             return null;
         }
 
-        $item->amount = $productItem->amount->discount($productItem->discount);
-        $item->subtotal = $item->amount->mul($item->quantity);
+        $item->amount = $productItem->amount;
+        $item->discount = $productItem->discount;
+        $item->subtotal = $item->amount->discount($item->discount)->mul($item->quantity);
         $item->weight = $productItem->weight;
         $item->gross_weight = $productItem->weight * $item->quantity;
+        $item->url = $product->url;
+        $item->name = $product->name;
         $item->desc_specs = collect([]);
         foreach ($productItem->specs as $specId) {
             $prodSpec = $product->specs->where('id', $specId)->first();
@@ -295,8 +298,6 @@ class CartServiceImpl implements CartService
         }
         $item->sku = $productItem->sku;
         $item->picture = $productItem->picture;
-        $item->product = $product;
-        $item->category = $this->catalog->getCategory($item->category_id);
 
         return $item;
     }
