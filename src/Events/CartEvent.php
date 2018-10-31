@@ -2,20 +2,18 @@
 
 namespace Viviniko\Cart\Events;
 
-use Viviniko\Cart\Models\Cart;
-
 class CartEvent
 {
     /**
-     * @var \Common\Cart\Models\Cart
+     * @var Object
      */
     public $cart;
 
     /**
      * CartEvent constructor.
-     * @param \Common\Cart\Models\Cart $cart
+     * @param Object $cart
      */
-    public function __construct(Cart $cart = null)
+    public function __construct($cart = null)
     {
         $this->cart = $cart;
     }
