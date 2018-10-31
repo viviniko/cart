@@ -158,8 +158,8 @@ class CartServiceImpl implements CartService
             $filters['client_id'] = Agent::clientId();
         }
 
-        $items = $this->cartRepository->findAllBy($filters, ['id'])->map(function($id) {
-            return $this->getCartItem($id);
+        $items = $this->cartRepository->findAllBy($filters, null, ['id'])->map(function($item) {
+            return $this->getCartItem($item->id);
         })->filter();
 
         $items = new Collection($items->sortByDesc('created_at')->all());
