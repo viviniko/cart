@@ -2,14 +2,15 @@
 
 namespace Viviniko\Cart\Services;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Config;
 use Viviniko\Agent\Facades\Agent;
 use Viviniko\Cart\Collection;
 use Viviniko\Cart\Events\CartCreated;
 use Viviniko\Cart\Events\CartRemoved;
 use Viviniko\Cart\Events\CartUpdated;
 use Viviniko\Cart\Repositories\Cart\CartRepository;
-use Viviniko\Catalog\Services\ItemService;
-use Viviniko\Catalog\Services\ProductService;
+use Viviniko\Catalog\Contracts\Catalog;
 use Viviniko\Promotion\Services\PromotionService;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Session\SessionManager;
@@ -23,14 +24,9 @@ class CartServiceImpl implements CartService
     protected $cartRepository;
 
     /**
-     * @var \Viviniko\Catalog\Services\ProductService
+     * @var \Viviniko\Catalog\Contracts\Catalog
      */
-    protected $productService;
-
-    /**
-     * @var \Viviniko\Catalog\Services\ItemService
-     */
-    protected $itemService;
+    protected $catalog;
 
     /**
      * @var \Viviniko\Promotion\Services\PromotionService
@@ -52,25 +48,27 @@ class CartServiceImpl implements CartService
     protected $events;
 
     /**
+     * @var int
+     */
+    protected $cacheMinutes = 2;
+
+    /**
      * EloquentCart constructor.
      * @param \Viviniko\Cart\Repositories\Cart\CartRepository
-     * @param \Viviniko\Catalog\Services\ItemService
-     * @param \Viviniko\Catalog\Services\ProductService $productService
+     * @param \Viviniko\Catalog\Contracts\Catalog
      * @param \Viviniko\Promotion\Services\PromotionService $promotionService
      * @param \Illuminate\Session\SessionManager $session
      * @param \Illuminate\Contracts\Events\Dispatcher $events
      */
     public function __construct(
         CartRepository $cartRepository,
-        ItemService $itemService,
-        ProductService $productService,
+        Catalog $catalog,
         PromotionService $promotionService,
         SessionManager $session,
         Dispatcher $events)
     {
         $this->cartRepository = $cartRepository;
-        $this->productService = $productService;
-        $this->itemService = $itemService;
+        $this->catalog = $catalog;
         $this->promotionService = $promotionService;
         $this->events = $events;
         $this->session = $session;
@@ -90,18 +88,22 @@ class CartServiceImpl implements CartService
             $cart = $this->cartRepository->update($cart->id, ['quantity' => $cart->quantity + $quantity]);
             $this->events->dispatch(new CartUpdated($cart));
         } else {
-            $item = $this->itemService->find($itemId);
+            $product = $this->catalog->getProductByItemId($itemId);
+            if (!$product) {
+                return false;
+            }
+            $item = $product->items->where('id', $itemId)->first();
             if (!$item) {
                 return false;
             }
 
             $cart = $this->cartRepository->create([
-                'product_id' => $item->product_id,
+                'product_id' => $product->id,
                 'item_id' => $item->id,
-                'category_id' => $item->product->category_id,
+                'category_id' => $product->category_id,
                 'customer_id' => (int) Auth::id(),
                 'client_id' => $clientId,
-                'amount' => $item->amount->value,
+                'amount' => $item->amount->discount($item->discount)->value,
                 'quantity' => $quantity,
             ]);
 
@@ -156,7 +158,9 @@ class CartServiceImpl implements CartService
             $filters['client_id'] = Agent::clientId();
         }
 
-        $items = $this->cartRepository->findAllBy($filters);
+        $items = $this->cartRepository->findAllBy($filters, ['id'])->map(function($id) {
+            return $this->getCartItem($id);
+        })->filter();
 
         $items = new Collection($items->sortByDesc('created_at')->all());
         if ($this->session->has('cart.quantity') && $this->session->get('cart.quantity') != $items->count()) {
@@ -264,5 +268,36 @@ class CartServiceImpl implements CartService
     public function deleteAll(array $ids)
     {
         return $this->cartRepository->deleteAll($ids);
+    }
+
+    public function getCartItem($id)
+    {
+        $item = Cache::remember("cart.item:{$id}", Config::get('cache.ttl', $this->cacheMinutes), function () use ($id) {
+            return $this->cartRepository->find($id);
+        });
+
+        $product = $this->catalog->getProduct($item->product_id);
+        $productItem = $product ? $product->items->where('id', $id)->first() : null;
+
+        if (!$productItem || !$item) {
+            return null;
+        }
+
+        $item->amount = $productItem->amount->discount($productItem->discount);
+        $item->subtotal = $item->amount->mul($item->quantity);
+        $item->weight = $productItem->weight;
+        $item->gross_weight = $productItem->weight * $item->quantity;
+        $item->desc_specs = collect([]);
+        foreach ($productItem->specs as $specId) {
+            $prodSpec = $product->specs->where('id', $specId)->first();
+            $prodSpecGroup = $product->specGroups->where('id', $prodSpec->group_id)->first();
+            $item->desc_specs->put($prodSpecGroup->name, $prodSpec->name);
+        }
+        $item->sku = $productItem->sku;
+        $item->picture = $productItem->picture;
+        $item->product = $product;
+        $item->category = $this->catalog->getCategory($item->category_id);
+
+        return $item;
     }
 }
