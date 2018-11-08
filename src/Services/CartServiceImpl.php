@@ -4,17 +4,17 @@ namespace Viviniko\Cart\Services;
 
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
-use Viviniko\Agent\Facades\Agent;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Session\SessionManager;
+use Illuminate\Support\Facades\Auth;
 use Viviniko\Cart\Collection;
 use Viviniko\Cart\Events\CartCreated;
 use Viviniko\Cart\Events\CartRemoved;
 use Viviniko\Cart\Events\CartUpdated;
 use Viviniko\Cart\Repositories\Cart\CartRepository;
 use Viviniko\Catalog\Contracts\Catalog;
+use Viviniko\Client\Facades\Client;
 use Viviniko\Promotion\Services\PromotionService;
-use Illuminate\Contracts\Events\Dispatcher;
-use Illuminate\Session\SessionManager;
-use Illuminate\Support\Facades\Auth;
 
 class CartServiceImpl implements CartService
 {
@@ -79,7 +79,7 @@ class CartServiceImpl implements CartService
      */
     public function add($itemId, $quantity)
     {
-        $clientId = Agent::clientId();
+        $clientId = Client::id();
 
         $cart = $this->cartRepository
             ->findBy(array_merge(Auth::check() ? ['customer_id' => Auth::id()] : ['client_id' => $clientId], ['item_id' => $itemId]));
@@ -120,7 +120,7 @@ class CartServiceImpl implements CartService
      */
     public function remove($cartId)
     {
-        if (($cart = $this->cartRepository->find($cartId)) && ((Auth::check() && $cart->customer_id == Auth::id()) || $cart->client_id == Agent::clientId())) {
+        if (($cart = $this->cartRepository->find($cartId)) && ((Auth::check() && $cart->customer_id == Auth::id()) || $cart->client_id == Client::id())) {
             $this->cartRepository->delete($cartId);
             $this->refresh();
             $this->events->dispatch(new CartRemoved($cart));
@@ -155,7 +155,7 @@ class CartServiceImpl implements CartService
         } else if (Auth::check()) {
             $filters['customer_id'] = Auth::id();
         } else {
-            $filters['client_id'] = Agent::clientId();
+            $filters['client_id'] = Client::id();
         }
 
         $items = $this->cartRepository->findAllBy($filters, null, ['id'])->map(function($item) {
@@ -214,7 +214,7 @@ class CartServiceImpl implements CartService
      */
     public function syncCustomerClientId($customerId, $clientId = null)
     {
-        $clientId = $clientId ?? Agent::clientId();
+        $clientId = $clientId ?? Client::id();
         $clientCartItems = $this->cartRepository->findAllBy('client_id', $clientId);
         foreach ($clientCartItems as $clientCartItem) {
             if ($clientCartItem->customer_id != $customerId) {
