@@ -272,9 +272,7 @@ class CartServiceImpl implements CartService
 
     public function getCartItem($id)
     {
-        $item = Cache::remember("cart.item:{$id}", Config::get('cache.ttl', $this->cacheMinutes), function () use ($id) {
-            return $this->cartRepository->find($id);
-        });
+        $item = $this->cartRepository->find($id);
 
         $product = $this->catalog->getProduct($item->product_id);
         $productItem = $product ? $product->items->where('id', $item->item_id)->first() : null;
