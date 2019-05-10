@@ -30,17 +30,9 @@ class CreateCartTable extends Migration
         // Create table for storing cart items
         Schema::create($this->cartTable, function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('product_id');
-            $table->unsignedInteger('item_id');
-            $table->unsignedInteger('category_id');
-            $table->string('client_id', 32);
-            $table->unsignedInteger('customer_id')->default(0);
-            $table->decimal('amount', 16, 4);
-            $table->unsignedSmallInteger('quantity');
+            $table->string('client_id')->unique();
+            $table->longText('items');
             $table->timestamps();
-
-            $table->index(['client_id', 'item_id']);
-            $table->index(['customer_id', 'item_id']);
         });
     }
 

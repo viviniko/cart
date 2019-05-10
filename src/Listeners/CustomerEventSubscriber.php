@@ -2,24 +2,21 @@
 
 namespace Viviniko\Cart\Listeners;
 
-use Viviniko\Cart\Services\CartService;
+use Viviniko\Cart\CartStoreManager;
 use Illuminate\Auth\Events\Login;
 
 class CustomerEventSubscriber
 {
-	/**
-	 * @var \Viviniko\Cart\Services\CartService
-	 */
-	private $cartService;
+    private $cartStoreManager;
 
-	public function __construct(CartService $cartService)
+    public function __construct(CartStoreManager $cartStoreManager)
     {
-		$this->cartService = $cartService;
-	}
+        $this->cartStoreManager = $cartStoreManager;
+    }
 
-	public function onLogin(Login $event)
+    public function onLogin(Login $event)
     {
-        $this->cartService->syncCustomerClientId($event->user->id);
+        $this->cartStoreManager->changeCurrentStore('authed_store') ;
 	}
 
 	/**

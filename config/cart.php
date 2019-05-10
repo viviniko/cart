@@ -1,23 +1,31 @@
 <?php
 
 return [
-    /*
-    |--------------------------------------------------------------------------
-    | Cart Model
-    |--------------------------------------------------------------------------
-    |
-    | This is the cart model.
-    |
-    */
-    'cart' => 'Viviniko\Cart\Models\Cart',
 
-    /*
-    |--------------------------------------------------------------------------
-    | Cart Table
-    |--------------------------------------------------------------------------
-    |
-    | This is the sale_cart table.
-    |
-    */
-    'cart_table' => 'cart',
+    /**
+     * minates
+     */
+    'ttl' => 7 * 24 * 60,
+
+    'store_drivers' => [
+        'database' => [
+            'model' => 'Viviniko\Cart\Models\Cart'
+        ],
+        'redis' => [
+            'conn' => 'cart',
+        ],
+        'cookie' => [
+        ],
+    ],
+
+    'authed_store' => [
+        'driver' => 'redis',
+    ],
+
+    'default_store' => [
+        'driver' => 'cookie',
+    ],
+
+    'table' => 'carts',
+
 ];
