@@ -36,6 +36,14 @@ class DatabaseCartStore extends AbstractCartStore
     }
 
     /**
+     * @return void
+     */
+    public function forget()
+    {
+        $this->getModel()->newQuery()->where(['client_id' => $this->getClientId()])->delete();
+    }
+
+    /**
      * @return \Viviniko\Support\Database\Eloquent\Model
      */
     public function getModel()

@@ -34,4 +34,12 @@ class CookieCartStore extends AbstractCartStore
 
         return empty($items) ? [] : $items;
     }
+
+    /**
+     * @return void
+     */
+    public function forget()
+    {
+        Cookie::forget($this->getClientId());
+    }
 }

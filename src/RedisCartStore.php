@@ -35,6 +35,14 @@ class RedisCartStore extends AbstractCartStore
         return empty($items) ? [] : $items;
     }
 
+    /**
+     * @return void
+     */
+    public function forget()
+    {
+        $this->getDefaultRedisConnection()->forget($this->getClientId());
+    }
+
     private function getDefaultRedisConnection()
     {
         return Redis::connection($this->connection);

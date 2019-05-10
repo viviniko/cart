@@ -9,5 +9,6 @@ class CartStoreChangedListener
     public function handle(CartStoreChanged $event)
     {
         $event->newCartStore->makeCart()->addAll($event->oldCartStore->getItems())->save();
+        $event->oldCartStore->forget();
     }
 }

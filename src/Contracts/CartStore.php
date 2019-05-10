@@ -24,6 +24,11 @@ interface CartStore
     public function getItems();
 
     /**
+     * @return void
+     */
+    public function forget();
+
+    /**
      * @return Cart
      */
     public function makeCart();
