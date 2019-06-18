@@ -2,8 +2,9 @@
 
 namespace Viviniko\Cart;
 
-use Viviniko\Cart\Console\Commands\CartTableCommand;
 use Illuminate\Support\ServiceProvider as BaseServiceProvider;
+use Illuminate\Support\Facades\Event;
+use Viviniko\Cart\Console\Commands\CartTableCommand;
 
 class CartServiceProvider extends BaseServiceProvider
 {
@@ -44,6 +45,8 @@ class CartServiceProvider extends BaseServiceProvider
         });
 
         $this->registerCommands();
+
+        Event::subscribe(\Viviniko\Cart\Listeners\CustomerEventSubscriber::class);
     }
 
     /**
