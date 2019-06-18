@@ -40,9 +40,11 @@ class CartServiceProvider extends BaseServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/cart.php', 'cart');
 
-        $this->app->singleton('carts', function ($app) {
+        $this->app->singleton(CartStoreManager::class, function ($app) {
             return new CartStoreManager($app, 'default_store');
         });
+
+        $this->app->alias('carts', CartStoreManager::class);
 
         $this->registerCommands();
 
