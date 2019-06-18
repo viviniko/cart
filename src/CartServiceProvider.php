@@ -44,7 +44,7 @@ class CartServiceProvider extends BaseServiceProvider
             return new CartStoreManager($app, 'default_store');
         });
 
-        $this->app->alias('carts', CartStoreManager::class);
+        $this->app->alias(CartStoreManager::class, 'carts');
 
         $this->registerCommands();
 
