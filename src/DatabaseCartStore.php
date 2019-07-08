@@ -38,7 +38,7 @@ class DatabaseCartStore extends AbstractCartStore
     /**
      * @return int
      */
-    public function count()
+    public function getQuantity()
     {
         return count($this->getItems());
     }

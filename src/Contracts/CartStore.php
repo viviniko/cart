@@ -26,7 +26,7 @@ interface CartStore
     /**
      * @return int
      */
-    public function count();
+    public function getQuantity();
 
     /**
      * @return void
