@@ -142,6 +142,8 @@ class Cart
             $this->couponCode = $coupon;
             $this->discountAmount = $discountAmount;
         }
+
+        return $this;
     }
 
     /**
@@ -162,6 +164,8 @@ class Cart
     public function setShippingAmount($shippingAmount)
     {
         $this->shippingAmount = $shippingAmount;
+
+        return $this;
     }
 
     /**
