@@ -52,10 +52,10 @@ class Item implements CartItem
         return $this->skuId == $cartItem->getSkuId();
     }
 
-    public function plus(CartItem $cartItem, $quantity = 1)
+    public function plus(CartItem $cartItem, $quantity = 1, $setQuantity = false)
     {
         if ($this->equals($cartItem)) {
-            $this->quantity += $quantity;
+            $this->quantity = $setQuantity ? $quantity : ($this->quantity + $quantity);
 
             return $this->quantity;
         }
