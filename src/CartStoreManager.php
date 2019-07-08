@@ -30,6 +30,12 @@ class CartStoreManager extends Manager
         $this->stores = new Collection();
     }
 
+    /**
+     * Get cart store.
+     *
+     * @param null $key
+     * @return \Viviniko\Cart\Contracts\CartStore
+     */
     public function getStore($key = null)
     {
         if ($key == null) {
