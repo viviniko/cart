@@ -36,6 +36,14 @@ class RedisCartStore extends AbstractCartStore
     }
 
     /**
+     * @return int
+     */
+    public function count()
+    {
+        return count($this->getItems());
+    }
+
+    /**
      * @return void
      */
     public function forget()
