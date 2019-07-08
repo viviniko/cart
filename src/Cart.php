@@ -53,10 +53,10 @@ class Cart
 
     }
 
-    public function add(CartItem $cartItem)
+    public function add(CartItem $cartItem, $quantity = 1)
     {
         foreach ($this->items as $item) {
-            if ($item->plus($cartItem) !== false) {
+            if ($item->plus($cartItem, $quantity) !== false) {
                 $this->event(new CartItemUpdated($this, $item));
                 return $this;
             }

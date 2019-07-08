@@ -12,11 +12,6 @@ interface CartItem
     public function getPrice();
 
     /**
-     * @return int
-     */
-    public function getQuantity();
-
-    /**
      * @return float
      */
     public function getWeight();
@@ -29,5 +24,5 @@ interface CartItem
     /**
      * @return array
      */
-    public function getSpecs();
+    public function getOptions();
 }

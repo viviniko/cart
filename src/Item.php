@@ -35,16 +35,16 @@ class Item implements CartItem
     /**
      * @var array
      */
-    private $specs;
+    private $options;
 
     public function __construct(CartItem $item)
     {
         $this->skuId = $item->getSkuId();
         $this->price = $item->getPrice();
-        $this->quantity = $item->getQuantity();
+        $this->quantity = 1;
         $this->weight = $item->getWeight();
         $this->discount = $item->getDiscount();
-        $this->specs = $item->getSpecs();
+        $this->options = $item->getOptions();
     }
 
     public function equals(CartItem $cartItem)
@@ -52,10 +52,10 @@ class Item implements CartItem
         return $this->skuId == $cartItem->getSkuId();
     }
 
-    public function plus(CartItem $cartItem)
+    public function plus(CartItem $cartItem, $quantity = 1)
     {
         if ($this->equals($cartItem)) {
-            $this->quantity += $cartItem->getQuantity();
+            $this->quantity += $quantity;
 
             return $this->quantity;
         }
@@ -101,9 +101,9 @@ class Item implements CartItem
     /**
      * @return array
      */
-    public function getSpecs()
+    public function getOptions()
     {
-        return $this->specs;
+        return $this->options;
     }
 
     /**
