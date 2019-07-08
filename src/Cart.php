@@ -201,6 +201,16 @@ class Cart
     }
 
     /**
+     * Get cart items.
+     *
+     * @return array
+     */
+    public function getItems()
+    {
+        return $this->items;
+    }
+
+    /**
      * Dynamically access collection proxies.
      *
      * @param  string  $key
