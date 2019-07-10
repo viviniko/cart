@@ -30,14 +30,14 @@ class Cart
     protected $discountAmount = 0;
 
     /**
-     * @var \Viviniko\Cart\Contracts\CartStore
-     */
-    protected $cartStore;
-
-    /**
      * @var array
      */
     protected $items;
+
+    /**
+     * @var \Viviniko\Cart\Contracts\CartStore
+     */
+    protected $cartStore;
 
     /**
      * @var \Closure
@@ -256,6 +256,11 @@ class Cart
         }
 
         throw new \BadMethodCallException();
+    }
+
+    public function __sleep()
+    {
+        return ['shippingAmount', 'couponCode', 'discountAmount', 'items'];
     }
 
     /**
