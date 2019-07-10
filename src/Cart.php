@@ -294,7 +294,7 @@ class Cart
             ? $this->froms[$cartItem->getSkuId()]
             : ($this->froms[$cartItem->getSkuId()] = ($this->fromResolver)($cartItem));
 
-        return $property ? $from->$property : $from;
+        return $property ? data_get($from, $property) : $from;
     }
 
     public function setFromResolver(\Closure $closure)
