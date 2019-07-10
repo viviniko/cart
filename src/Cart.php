@@ -273,6 +273,8 @@ class Cart
     public function setFromResolver(\Closure $closure)
     {
         $this->fromResolver = $closure;
+
+        return $this;
     }
 
     private function event(CartItemEvent $cartItemEvent)
