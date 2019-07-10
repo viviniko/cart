@@ -48,7 +48,10 @@ class CartServiceProvider extends BaseServiceProvider
 
         $this->registerCommands();
 
-        Event::subscribe(\Viviniko\Cart\Listeners\CartStoreChangedListener::class);
+        Event::listen(
+            \Viviniko\Cart\Events\CartStoreChanged::class,
+            \Viviniko\Cart\Listeners\CartStoreChangedListener::class
+        );
     }
 
     /**
