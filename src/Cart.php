@@ -15,11 +15,6 @@ use Viviniko\Currency\Facades\Currency;
 class Cart
 {
     /**
-     * @var string
-     */
-    private $clientId;
-
-    /**
      * @var \Viviniko\Currency\Amount
      */
     protected $shippingAmount;
@@ -44,13 +39,11 @@ class Cart
      */
     protected $items;
 
-    public function __construct($clientId, array $items)
+    public function __construct(CartStore $cartStore)
     {
-        $this->clientId = $clientId;
-        $this->items = $items;
+        $this->setCartStore($cartStore);
         $this->shippingAmount = Currency::createBaseAmount(0);
         $this->discountAmount = Currency::createBaseAmount(0);
-
     }
 
     public function add(CartItem $cartItem, $quantity = 1, $setQuantity = false)
@@ -100,7 +93,7 @@ class Cart
 
     public function save()
     {
-        $this->getCartStore()->store($this, Config::get('cart.ttl', 15 * 24 * 60));
+        $this->getCartStore()->setItems($this->items, Config::get('cart.ttl', 15 * 24 * 60));
     }
 
     /**
@@ -245,14 +238,10 @@ class Cart
         });
     }
 
-    public function getClientId()
-    {
-        return $this->clientId;
-    }
-
     public function setCartStore(CartStore $cartStore)
     {
         $this->cartStore = $cartStore;
+        $this->items = $cartStore->getItems();
 
         return $this;
     }

@@ -26,9 +26,6 @@ abstract class AbstractCartStore implements CartStore
 
     public function makeCart()
     {
-        $cart = new Cart($this->getClientId(), $this->getItems());
-        $cart->setCartStore($this);
-
-        return $cart;
+        return new Cart($this);
     }
 }
