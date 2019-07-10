@@ -49,11 +49,25 @@ class Cart
      */
     protected $froms;
 
-    public function __construct(CartStore $cartStore)
+    private function __construct(array $items = [])
     {
-        $this->setCartStore($cartStore);
+        $this->items = $items;
         $this->shippingAmount = Currency::createBaseAmount(0);
         $this->discountAmount = Currency::createBaseAmount(0);
+    }
+
+    public static function create($cartStore)
+    {
+        if ($cartStore instanceof CartStore) {
+            $cart = new static();
+            $cart->setCartStore($cartStore);
+
+            return $cart;
+        } else if (is_array($cartStore)) {
+            return new static($cartStore);
+        }
+
+        throw new \InvalidArgumentException();
     }
 
     public function add(CartItem $cartItem, $quantity = 1, $setQuantity = false)
@@ -215,6 +229,14 @@ class Cart
     public function getItems()
     {
         return $this->items;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEmpty()
+    {
+        return empty($this->items);
     }
 
     /**

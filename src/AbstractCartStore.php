@@ -26,6 +26,6 @@ abstract class AbstractCartStore implements CartStore
 
     public function makeCart()
     {
-        return new Cart($this);
+        return Cart::create($this);
     }
 }
