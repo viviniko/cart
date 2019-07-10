@@ -39,6 +39,16 @@ class Cart
      */
     protected $items;
 
+    /**
+     * @var \Closure
+     */
+    protected $fromResolver;
+
+    /**
+     * @var array
+     */
+    protected $froms;
+
     public function __construct(CartStore $cartStore)
     {
         $this->setCartStore($cartStore);
@@ -249,6 +259,20 @@ class Cart
     public function getCartStore()
     {
         return $this->cartStore;
+    }
+
+    public function from(CartItem $cartItem, $property = null)
+    {
+        $from = isset($this->froms[$cartItem->getSkuId()])
+            ? $this->froms[$cartItem->getSkuId()]
+            : ($this->froms[$cartItem->getSkuId()] = ($this->fromResolver)($cartItem));
+
+        return $property ? $from->$property : $from;
+    }
+
+    public function setFromResolver(\Closure $closure)
+    {
+        $this->fromResolver = $closure;
     }
 
     private function event(CartItemEvent $cartItemEvent)
