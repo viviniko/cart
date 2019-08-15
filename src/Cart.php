@@ -15,24 +15,14 @@ use Viviniko\Currency\Facades\Currency;
 class Cart
 {
     /**
-     * @var \Viviniko\Currency\Amount
+     * @var array
      */
-    protected $shippingAmount;
-
-    /**
-     * @var string
-     */
-    protected $couponCode = null;
-
-    /**
-     * @var \Viviniko\Currency\Amount
-     */
-    protected $discountAmount = 0;
+    protected $items;
 
     /**
      * @var array
      */
-    protected $items;
+    protected $data;
 
     /**
      * @var \Viviniko\Cart\Contracts\CartStore
@@ -49,11 +39,10 @@ class Cart
      */
     protected $froms;
 
-    private function __construct(array $items = [])
+    private function __construct(array $items = [], array $data = [])
     {
         $this->items = $items;
-        $this->shippingAmount = Currency::createBaseAmount(0);
-        $this->discountAmount = Currency::createBaseAmount(0);
+        $this->data = $data;
     }
 
     public static function create($cartStore)
@@ -133,69 +122,6 @@ class Cart
     }
 
     /**
-     * Get grand total.
-     *
-     * @return float
-     */
-    public function getGrandTotal()
-    {
-        return $this->getSubtotal()->sub($this->getDiscountAmount())->add($this->getShippingAmount());
-    }
-
-    /**
-     * Set coupon.
-     *
-     * @param $coupon
-     * @param $discountAmount
-     * @return mixed
-     * @throws \Exception
-     */
-    public function setCoupon($coupon, $discountAmount = null)
-    {
-        if (empty($coupon)) {
-            $this->couponCode = null;
-            $this->discountAmount = Currency::createBaseAmount(0);
-        } else {
-            $this->couponCode = $coupon;
-            $this->discountAmount = $discountAmount;
-        }
-
-        return $this;
-    }
-
-    /**
-     * Get discount amount.
-     *
-     * @return float
-     */
-    public function getDiscountAmount()
-    {
-        return $this->discountAmount;
-    }
-
-    public function getDiscountCoupon()
-    {
-        return $this->couponCode;
-    }
-
-    public function setShippingAmount($shippingAmount)
-    {
-        $this->shippingAmount = $shippingAmount;
-
-        return $this;
-    }
-
-    /**
-     * Get shipping amount.
-     *
-     * @return float
-     */
-    public function getShippingAmount()
-    {
-        return $this->shippingAmount;
-    }
-
-    /**
      * Get cart quantity.
      *
      * @return int
@@ -240,6 +166,18 @@ class Cart
     }
 
     /**
+     * Dynamically set an attribute on the cart.
+     *
+     * @param  string  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function __set($key, $value)
+    {
+        $this->data[$key] = $value;
+    }
+
+    /**
      * Dynamically access collection proxies.
      *
      * @param  string  $key
@@ -255,12 +193,16 @@ class Cart
             return $result;
         }
 
+        if (array_key_exists($key, $this->data)) {
+            return $this->data[$key];
+        }
+
         throw new \BadMethodCallException();
     }
 
     public function __sleep()
     {
-        return ['shippingAmount', 'couponCode', 'discountAmount', 'items'];
+        return ['items', 'data'];
     }
 
     /**
@@ -270,9 +212,9 @@ class Cart
      */
     public function getStatistics()
     {
-        return collect(['quantity', 'subtotal', 'grand_total', 'discount_amount', 'shipping_amount'])->mapWithKeys(function ($item) {
+        return collect($this->data)->merge(collect(['quantity', 'subtotal'])->mapWithKeys(function ($item) {
             return [$item => $this->$item];
-        });
+        }));
     }
 
     public function setCartStore(CartStore $cartStore)
