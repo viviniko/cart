@@ -105,7 +105,7 @@ class Cart
     /**
      * Get subtotal.
      *
-     * @return float
+     * @return Money
      */
     public function getSubtotal()
     {
