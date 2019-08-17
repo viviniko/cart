@@ -37,6 +37,18 @@ class Item implements CartItem
      */
     private $options;
 
+    /**
+     * @var mixed
+     */
+    private $source;
+
+    /**
+     * Source resolver
+     *
+     * @var mixed
+     */
+    protected static $sourceResolvers;
+
     public function __construct(CartItem $item)
     {
         $this->skuId = $item->getSkuId();
@@ -122,6 +134,28 @@ class Item implements CartItem
             return $result;
         }
 
+        if ($this->resolveSource() !== false) {
+            return data_get($this->resolveSource(), $key);
+        }
+
         throw new \BadMethodCallException();
+    }
+
+    public static function configSourceResolvers($resolvers)
+    {
+        self::$sourceResolvers = $resolvers;
+    }
+
+    public function resolveSource() {
+        if (!$this->source) {
+            foreach(self::$sourceResolvers as $resolver) {
+                if (($source = $resolver($this)) !== false) {
+                    $this->source = $source;
+                    break;
+                }
+            }
+        }
+
+        return $this->source;
     }
 }

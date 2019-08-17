@@ -4,6 +4,7 @@ namespace Viviniko\Cart;
 
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
+use Illuminate\Support\Traits\Macroable;
 use Viviniko\Cart\Contracts\CartItem;
 use Viviniko\Cart\Contracts\CartStore;
 use Viviniko\Cart\Events\CartItemAdded;
@@ -14,6 +15,8 @@ use Viviniko\Currency\Facades\Currency;
 
 class Cart
 {
+    use Macroable;
+
     /**
      * @var array
      */
@@ -28,16 +31,6 @@ class Cart
      * @var \Viviniko\Cart\Contracts\CartStore
      */
     protected $cartStore;
-
-    /**
-     * @var \Closure
-     */
-    protected $fromResolver;
-
-    /**
-     * @var array
-     */
-    protected $froms;
 
     private function __construct(array $items = [], array $data = [])
     {
@@ -228,22 +221,6 @@ class Cart
     public function getCartStore()
     {
         return $this->cartStore;
-    }
-
-    public function from(CartItem $cartItem, $property = null)
-    {
-        $from = isset($this->froms[$cartItem->getSkuId()])
-            ? $this->froms[$cartItem->getSkuId()]
-            : ($this->froms[$cartItem->getSkuId()] = ($this->fromResolver)($cartItem));
-
-        return $property ? data_get($from, $property) : $from;
-    }
-
-    public function setFromResolver(\Closure $closure)
-    {
-        $this->fromResolver = $closure;
-
-        return $this;
     }
 
     private function event(CartItemEvent $cartItemEvent)
