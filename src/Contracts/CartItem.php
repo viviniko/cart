@@ -7,7 +7,7 @@ interface CartItem
     public function getSkuId();
 
     /**
-     * @return \Viviniko\Currency\Amount
+     * @return \Viviniko\Currency\Money
      */
     public function getPrice();
 

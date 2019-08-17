@@ -13,7 +13,7 @@ class Item implements CartItem
     private $skuId;
 
     /**
-     * @var \Viviniko\Currency\Amount
+     * @var \Viviniko\Currency\Money
      */
     private $price;
 

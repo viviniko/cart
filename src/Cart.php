@@ -11,7 +11,7 @@ use Viviniko\Cart\Events\CartItemAdded;
 use Viviniko\Cart\Events\CartItemEvent;
 use Viviniko\Cart\Events\CartItemRemoved;
 use Viviniko\Cart\Events\CartItemUpdated;
-use Viviniko\Currency\Facades\Currency;
+use Viviniko\Currency\Money;
 
 class Cart
 {
@@ -109,9 +109,9 @@ class Cart
      */
     public function getSubtotal()
     {
-        return array_reduce($this->items, function ($amount, $item) {
-            return $amount->add($item->subtotal);
-        }, Currency::createBaseAmount(0));
+        return array_reduce($this->items, function ($money, $item) {
+            return $money->add($item->subtotal);
+        }, Money::create(0));
     }
 
     /**
