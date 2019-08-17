@@ -143,7 +143,7 @@ class Item implements CartItem
 
     public static function configSourceResolvers($resolvers)
     {
-        self::$sourceResolvers = $resolvers;
+        self::$sourceResolvers = is_array($resolvers) ? $resolvers : [$resolvers];
     }
 
     public function resolveSource() {
