@@ -26,6 +26,6 @@ return [
         'driver' => 'cookie',
     ],
 
-    'table' => 'carts',
+    'cart_table' => 'carts',
 
 ];
