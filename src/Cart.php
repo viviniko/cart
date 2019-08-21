@@ -52,20 +52,37 @@ class Cart
         throw new \InvalidArgumentException();
     }
 
-    public function add(CartItem $cartItem, $quantity = 1, $setQuantity = false)
+    public function add(CartItem $cartItem, $quantity = 1)
     {
         foreach ($this->items as $item) {
-            if ($item->plus($cartItem, $quantity, $setQuantity) !== false) {
+            if ($item->equals($cartItem)) {
+                $item->plusQuantity($quantity);
                 $this->event(new CartItemUpdated($this, $item));
                 return $this;
             }
         }
 
-        $item = new Item($cartItem);
+        $item = new Item($cartItem, $quantity);
         $this->items[] = $item;
         $this->event(new CartItemAdded($this, $item));
 
         return $this;
+    }
+
+    public function put(CartItem $cartItem, $quantity)
+    {
+        if ($quantity > 0) {
+            foreach ($this->items as $item) {
+                if ($item->equals($cartItem)) {
+                    $item->setQuantity($quantity);
+                    $this->event(new CartItemUpdated($this, $item));
+                    return $this;
+                }
+            }
+            return $this->add($cartItem, $quantity);
+        }
+
+        return $this->remove($cartItem);
     }
 
     public function remove(CartItem $cartItem)

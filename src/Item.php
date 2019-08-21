@@ -49,11 +49,11 @@ class Item implements CartItem
      */
     protected static $sourceResolvers;
 
-    public function __construct(CartItem $item)
+    public function __construct(CartItem $item, $quantity = 1)
     {
         $this->skuId = $item->getSkuId();
         $this->price = $item->getPrice();
-        $this->quantity = 1;
+        $this->quantity = $quantity;
         $this->weight = $item->getWeight();
         $this->discount = $item->getDiscount();
         $this->options = $item->getOptions();
@@ -62,6 +62,20 @@ class Item implements CartItem
     public function equals(CartItem $cartItem)
     {
         return $this->skuId == $cartItem->getSkuId();
+    }
+
+    public function plusQuantity($quantity)
+    {
+        $this->quantity += $quantity;
+
+        return $this;
+    }
+
+    public function setQuantity($quantity)
+    {
+        $this->quantity = $quantity;
+
+        return $this->quantity;
     }
 
     public function plus(CartItem $cartItem, $quantity = 1, $setQuantity = false)
