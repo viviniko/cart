@@ -89,11 +89,13 @@ class Cart
     {
         $this->items = array_filter($this->items, function (Item $item) use ($cartItem, &$removedItem) {
             if ($item->equals($cartItem)) {
-                $this->event(new CartItemRemoved($this, $item));
+                $removedItem = $item;
                 return false;
             }
+            return true;
         });
-
+        if ($removedItem)
+            $this->event(new CartItemRemoved($this, $removedItem));
         return $this;
     }
 
